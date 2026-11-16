@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adventskalender</title>
+<style>
+:root{
+  --night:#1b2a29; --night2:#243736; --kraft:#c9a477; --kraft-d:#9c7a4e; --kraft-l:#e8d0a4;
+  --twine:#d9c598; --gold:#e3b95a; --paper:#f6eedc; --paper2:#efe3c8; --ink:#2b2a26; --red:#b5392f; --glow:rgba(227,185,90,.85); --text:var(--paper); --schatten:rgba(0,0,0,.4); --abdunkeln:rgba(10,18,17,.78);
+}
+@media (prefers-color-scheme: dark){ :root{ --paper:#efe5cf; } }
+html.meer{ --night:#3fb4d0; --night2:#a6e6ee; --text:#08405e; --gold:#0a5d8f; --paper:#ffffff; --paper2:#e4f6fa; --ink:#0a3550; --red:#1d86ad; --glow:rgba(255,255,255,.95); --twine:#bfa163; --schatten:rgba(8,70,100,.32); --abdunkeln:rgba(6,70,100,.55); }
+*{box-sizing:border-box}
+html{background:var(--night); overflow-x:hidden}
+body{
+  margin:0; min-height:100vh; color:var(--text);
+  font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  background:linear-gradient(180deg, var(--night2), var(--night));
+  padding:0 16px 56px; overflow-x:hidden;
+}
+header{text-align:center; padding:48px 0 28px; max-width:640px; margin:0 auto}
+h1{font-size:clamp(1.9rem,5vw,3rem); font-weight:500; margin:0 0 10px; letter-spacing:.01em}
+header p{margin:0; opacity:.92; font-size:1.05rem; line-height:1.5}
+
+.grid{max-width:1000px; margin:0 auto; display:flex; flex-direction:column; row-gap:30px}
+.row{position:relative; display:grid; padding-top:6px}
+.cell{position:relative; display:flex; justify-content:center; align-items:flex-start}
+.row>svg.faden{position:absolute; left:0; top:12px; width:100%; overflow:visible; pointer-events:none}
+.faden path{fill:none; stroke:var(--twine); stroke-width:2.6; vector-effect:non-scaling-stroke; stroke-linecap:round; stroke-linejoin:round;
+  filter:drop-shadow(0 2px 2px var(--schatten))}
+.faden path.dunkel{stroke:#a98f5d; stroke-width:1; stroke-dasharray:2 5; filter:none}
+
+.roll{
+  --w:clamp(54px,10vw,82px);
+  position:relative; width:var(--w); height:calc(var(--w)*1.3 + 22px); margin-top:0;
+  border:0; background:none; padding:0; cursor:pointer; color:inherit; font:inherit;
+  transform-origin:50% 8px; transform:rotate(var(--tilt,0deg)); transition:transform .25s ease;
+  z-index:1;
+}
+.roll:hover,.roll:focus-visible{animation:sway 1.8s ease-in-out infinite}
+.roll:focus-visible{outline:3px solid var(--gold); outline-offset:8px; border-radius:6px}
+@keyframes sway{0%,100%{transform:rotate(calc(var(--tilt) - 3deg))}50%{transform:rotate(calc(var(--tilt) + 3deg))}}
+.roll .umschlag{position:absolute; left:0; top:20px; width:100%; display:block;
+  filter:drop-shadow(0 5px 6px var(--schatten))}
+.roll .klammer{position:absolute; left:50%; top:0; width:14px; height:46px; margin-left:-7px; z-index:2;
+  filter:drop-shadow(1px 2px 2px rgba(0,0,0,.45))}
+.roll[data-state="gelesen"]::after{content:"\2713"; position:absolute; right:-5px; bottom:6px; width:20px; height:20px; border-radius:50%;
+  background:#fff; color:#1d86ad; font-size:13px; font-weight:700; display:grid; place-items:center; box-shadow:0 1px 3px var(--schatten); z-index:3}
+.roll[data-state="heute"] .umschlag{filter:drop-shadow(0 0 10px var(--glow)) drop-shadow(0 5px 6px var(--schatten))}
+
+
+/* Geschichte */
+dialog{
+  border:0; padding:0; background:transparent; max-width:min(640px,92vw); width:100%; color:var(--ink);
+  max-height:88vh;
+}
+dialog::backdrop{background:var(--abdunkeln, rgba(10,18,17,.78))}
+.blatt{
+  position:relative; background:var(--paper); padding:40px clamp(22px,5vw,48px) 36px;
+  border-radius:4px; box-shadow:0 20px 50px rgba(0,0,0,.5); max-height:88vh; overflow:auto;
+  background-image:linear-gradient(var(--paper),var(--paper2));
+}
+.blatt .tag{margin:0 0 4px; color:var(--red); font-size:.95rem}
+.blatt h2{margin:0 0 20px; font-size:clamp(1.5rem,4vw,2rem); font-weight:500; line-height:1.2}
+.blatt p{margin:0 0 1em; line-height:1.7; font-size:1.08rem; max-width:62ch}
+.zu{
+  position:absolute; top:10px; right:10px; width:40px; height:40px; border-radius:50%;
+  border:0; background:transparent; font-size:1.7rem; line-height:1; cursor:pointer; color:var(--ink);
+}
+.zu:hover{background:rgba(0,0,0,.08)}
+.zu:focus-visible{outline:3px solid var(--red)}
+
+@media (prefers-reduced-motion:reduce){
+  .roll:hover,.roll:focus-visible{animation:none}
+  *{transition:none!important}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<linearGradient id="holz" x1="0" x2="1"><stop offset="0" stop-color="#d4ad70"/><stop offset=".45" stop-color="#f2deb2"/><stop offset="1" stop-color="#cba165"/></linearGradient>
+<radialGradient id="siegel" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#f6dc8e"/><stop offset=".6" stop-color="#d9a93f"/><stop offset="1" stop-color="#b5832a"/></radialGradient>
+<radialGradient id="perle" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#d4e8f0"/><stop offset="1" stop-color="#9cc3d6"/></radialGradient>
+<linearGradient id="glanz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".08"/></linearGradient>
+</defs></svg>
+<header>
+  <h1 id="titel"></h1>
+  <p id="untertitel"></p>
+</header>
+
+<main class="grid" id="grid" aria-label="Adventskalender"></main>
+
+<dialog id="dlg" aria-labelledby="dlgTitel">
+  <article class="blatt">
+    <button class="zu" id="zu" aria-label="Schliessen">×</button>
+    <p class="tag" id="dlgTag"></p>
+    <h2 id="dlgTitel"></h2>
+    <div id="dlgText"></div>
+  </article>
+</dialog>
+
+<script src="stories.js"></script>
+<script>
+(function(){
+  var K = window.KALENDER || {}, S = window.GESCHICHTEN || [];
+  var EN = K.sprache === "en";
+  var T = EN
+    ? { kalender:"Advent calendar", schliessen:"Close", tag:"Day ", gelesen:", already read", leerTitel:"Empty", leerText:"The story for this day is still missing.", datum:function(t){ return "December " + t; } }
+    : { kalender:"Adventskalender", schliessen:"Schliessen", tag:"Tag ", gelesen:", bereits gelesen", leerTitel:"Noch leer", leerText:"Für diesen Tag fehlt noch eine Geschichte.", datum:function(t){ return t + ". Dezember"; } };
+  document.documentElement.lang = EN ? "en" : "de";
+  document.getElementById("grid").setAttribute("aria-label", T.kalender);
+  document.getElementById("zu").setAttribute("aria-label", T.schliessen);
+  var KEY = "adventskalender-gelesen-" + (K.jahr || "") + (EN ? "-en" : "");
+  var gelesen = {};
+  try { gelesen = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch(e) {}
+
+  document.getElementById("titel").textContent = K.titel || T.kalender;
+  document.getElementById("untertitel").textContent = K.untertitel || "";
+  document.title = K.titel || T.kalender;
+
+  var heute = new Date();
+  function status(tag){
+    if (gelesen[tag]) return "gelesen";
+    var istHeute = heute.getFullYear() === (K.jahr || heute.getFullYear()) && heute.getMonth() === 11 && heute.getDate() === tag;
+    return istHeute ? "heute" : "offen";
+  }
+
+  var grid = document.getElementById("grid");
+
+  var XMAS_FARBEN = [
+    {body:"#fbf6ea", klappe:"#f1e7d0", rand:"#d6c39b", motiv:"#b5392f", beere:"#d9a93f"},   // weiss
+    {body:"#e9d6b3", klappe:"#ddc79d", rand:"#c3a773", motiv:"#fffaf0", beere:"#b5392f"},   // beige
+    {body:"#a8352b", klappe:"#bb4a3f", rand:"#e0b95c", motiv:"#ecc870", beere:"#fbf6ea"}    // rot
+  ];
+  var XMAS_MOTIVE = [
+    function(c){return '<polygon points="0,-11 3,-3.5 11,-3.5 4.8,1.5 7,9.5 0,4.8 -7,9.5 -4.8,1.5 -11,-3.5 -3,-3.5" fill="'+c.motiv+'"/>';},
+    function(c){return '<polygon points="0,-11 -6,-3 -3,-3 -8,3 -4,3 -9,9 9,9 4,3 8,3 3,-3 6,-3" fill="'+c.motiv+'"/><rect x="-1.5" y="9" width="3" height="3" fill="'+c.motiv+'"/>';},
+    function(c){return '<path d="M0 -10V10M-8.7 -5L8.7 5M-8.7 5L8.7 -5M-2.5 -8L0 -5.5L2.5 -8M-2.5 8L0 5.5L2.5 8" stroke="'+c.motiv+'" stroke-width="1.5" stroke-linecap="round" fill="none"/>';},
+    function(c){return '<path d="M0 -9C-7 -9 -7 2 -9 7L9 7C7 2 7 -9 0 -9Z" fill="'+c.motiv+'"/><circle cx="0" cy="10" r="2.2" fill="'+c.motiv+'"/>';},
+    function(c){return '<ellipse cx="-4.5" cy="-1" rx="6.5" ry="3" transform="rotate(-28 -4.5 -1)" fill="'+c.motiv+'"/><ellipse cx="4.5" cy="-1" rx="6.5" ry="3" transform="rotate(28 4.5 -1)" fill="'+c.motiv+'"/><circle cx="0" cy="4" r="2" fill="'+c.beere+'"/><circle cx="-3" cy="6.5" r="2" fill="'+c.beere+'"/><circle cx="3" cy="6.5" r="2" fill="'+c.beere+'"/>';}
+  ];
+
+  var MEER_FARBEN = [
+    {body:"#ffffff", klappe:"#e6f6fb", rand:"#a9d8e6", motiv:"#1d86ad", beere:"#4fbfd8"},   // Schaum
+    {body:"#c5ecf7", klappe:"#a9e0f1", rand:"#6fbcd6", motiv:"#ffffff", beere:"#1d86ad"},   // Himmelblau
+    {body:"#1f7fba", klappe:"#3396d0", rand:"#a6e0f5", motiv:"#eafaff", beere:"#a6e0f5"}    // Ozeanblau
+  ];
+  var MEER_MOTIVE = [
+    function(c){ // Wal
+      return '<path d="M-11 1C-11 -5 -4 -8 2 -6C6 -5 8 -3 9 -6C10.5 -3 9.5 2 6 4C0 8 -11 8 -11 1Z" fill="'+c.motiv+'"/><path d="M8 -3C9 -6 10 -8 12 -9C12.5 -6 11.5 -3 10 0Z" fill="'+c.motiv+'"/><circle cx="-7" cy="-0.5" r="1" fill="'+c.body+'"/>';},
+    function(c){ // Delfin
+      return '<path d="M-10 5C-9 -3 -3 -8 3 -7C7 -6.5 9 -4 11 -5C9 -1 7 1 3 1.5C-2 2 -5 7 -10 5Z" fill="'+c.motiv+'"/><path d="M-1 -7.5L1.5 -11L3 -7Z" fill="'+c.motiv+'"/><circle cx="-6" cy="-0.5" r="1" fill="'+c.body+'"/>';},
+    function(c){ // Fisch
+      return '<ellipse cx="-2" cy="0" rx="8" ry="5" fill="'+c.motiv+'"/><polygon points="5,0 11,-5 11,5" fill="'+c.motiv+'"/><circle cx="-6" cy="-1" r="1.1" fill="'+c.body+'"/>';},
+    function(c){ // Qualle
+      return '<path d="M-8 -1A8 8 0 0 1 8 -1Z" fill="'+c.motiv+'" transform="translate(0 -2)"/><path d="M-5 -2Q-7 1 -5 4T-5 9M0 -2Q-2 1 0 4T0 9M5 -2Q3 1 5 4T5 9" stroke="'+c.motiv+'" stroke-width="1.3" fill="none" stroke-linecap="round"/>';},
+    function(c){ // Schildkröte
+      return '<circle cx="0" cy="-8" r="2.6" fill="'+c.motiv+'"/><ellipse cx="-7" cy="-3" rx="4" ry="1.8" transform="rotate(-30 -7 -3)" fill="'+c.motiv+'"/><ellipse cx="7" cy="-3" rx="4" ry="1.8" transform="rotate(30 7 -3)" fill="'+c.motiv+'"/><ellipse cx="-6" cy="6" rx="3.4" ry="1.6" transform="rotate(35 -6 6)" fill="'+c.motiv+'"/><ellipse cx="6" cy="6" rx="3.4" ry="1.6" transform="rotate(-35 6 6)" fill="'+c.motiv+'"/><ellipse cx="0" cy="1" rx="6.5" ry="7" fill="'+c.motiv+'"/><path d="M-4 -2L0 0L4 -2M0 0V6" stroke="'+c.body+'" stroke-width=".8" fill="none"/>';},
+    function(c){ // Seestern
+      return '<polygon points="0,-10 3,-3.5 10,-3.5 4.5,1.5 6.5,9 0,4.8 -6.5,9 -4.5,1.5 -10,-3.5 -3,-3.5" fill="'+c.motiv+'" stroke="'+c.motiv+'" stroke-width="1.6" stroke-linejoin="round"/><g fill="'+c.body+'"><circle cx="0" cy="-4" r=".8"/><circle cx="3.8" cy="-1" r=".8"/><circle cx="2.3" cy="3.4" r=".8"/><circle cx="-2.3" cy="3.4" r=".8"/><circle cx="-3.8" cy="-1" r=".8"/></g>';},
+    function(c){ // Muschel
+      return '<path d="M0 8C-12 4 -12 -8 0 -9C12 -8 12 4 0 8Z" fill="'+c.motiv+'"/><path d="M0 7L0 -8M0 7L-6 -6M0 7L6 -6" stroke="'+c.body+'" stroke-width=".8" fill="none"/><path d="M-3 8H3L2 11H-2Z" fill="'+c.motiv+'"/>';}
+  ];
+  var meer = (K.thema || "meer") !== "weihnachten";
+  if (meer) document.documentElement.classList.add("meer");
+  var FARBEN = meer ? MEER_FARBEN : XMAS_FARBEN, MOTIVE = meer ? MEER_MOTIVE : XMAS_MOTIVE;
+  function umschlag(tag){
+    var c = FARBEN[tag % 3], m = MOTIVE[tag % MOTIVE.length];
+    var zahl = '<text x="50" y="' + (tag > 9 ? 73 : 73.5) + '" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="' + (tag > 9 ? 14 : 16) + '" fill="'+(meer?"#0a3550":"#4a2a10")+'">' + tag + '</text>';
+    return '<svg class="umschlag" viewBox="0 0 100 130" aria-hidden="true">' +
+      '<rect x="4" y="16" width="92" height="110" rx="2" fill="' + c.body + '" stroke="' + c.rand + '" stroke-width="1"/>' +
+      '<path d="M4 126L50 80L96 126" fill="none" stroke="' + c.rand + '" stroke-width=".8" opacity=".6"/>' +
+      '<polygon points="4,16 96,16 50,68" fill="' + c.klappe + '" stroke="' + c.rand + '" stroke-width="1" stroke-linejoin="round"/>' +
+      '<rect x="4" y="16" width="92" height="110" rx="2" fill="url(#glanz)"/>' +
+      '<g transform="translate(50 103)">' + m(c) + '</g>' +
+      '<circle cx="50" cy="68" r="14" fill="url(#' + (meer ? "perle" : "siegel") + ')" stroke="' + (meer ? "#7fa9c0" : "#b5832a") + '" stroke-width=".8"/>' + zahl + '</svg>';
+  }
+  var KLAMMER = '<svg class="klammer" viewBox="0 0 16 52" aria-hidden="true">' +
+    '<path d="M2 1.5L6.6 1.5L7.4 23L8.6 23L9.4 1.5L14 1.5L13 50.5L3 50.5Z" fill="url(#holz)" stroke="#a97d43" stroke-width=".7" stroke-linejoin="round"/>' +
+    '<path d="M8 34V50" stroke="#8a6636" stroke-width=".8"/>' +
+    '<ellipse cx="8" cy="25" rx="4.6" ry="2.6" fill="none" stroke="#aab1b7" stroke-width="1.4"/>' +
+    '<path d="M3.4 25.5L12.6 25.5" stroke="#d3d8dc" stroke-width=".7"/></svg>';
+
+  // Eine Schnur pro Reihe: an den Seiten am höchsten, in der Mitte am tiefsten.
+  // An jeder Klammer knickt sie durch das Gewicht des Umschlags leicht nach unten.
+  var LAST = 3;
+  function baue(cols){
+    grid.textContent = "";
+    var S = cols === 6 ? 34 : cols === 4 ? 28 : 22;
+    function kurve(u){ return S * (1 - Math.pow(2 * u - 1, 2)); }
+    var steigung = 4 * S / 100;                 // Anstieg der Kurve am Rand (px pro %)
+    for (var start = 1; start <= 24; start += cols) {
+      var row = document.createElement("div"); row.className = "row";
+      row.style.gridTemplateColumns = "repeat(" + cols + ",1fr)";
+      var pts = [[-60, -60 * steigung], [0, 0]], ys = [];
+      for (var i = 0; i < cols; i++) {
+        var u = (i + 0.5) / cols, y = kurve(u) + LAST;
+        pts.push([u * 100, y]); ys.push(y);
+      }
+      pts.push([100, 0], [160, -60 * steigung]);
+      var d = "M" + pts.map(function(p){ return p[0] + " " + p[1]; }).join("L");
+      row.innerHTML = '<svg class="faden" viewBox="0 0 100 ' + (S + 12) + '" preserveAspectRatio="none" style="height:' + (S + 12) + 'px" aria-hidden="true"><path d="' + d + '"/></svg>';
+      for (var k = 0; k < cols; k++) row.appendChild(zelle(start + k, ys[k]));
+      grid.appendChild(row);
+    }
+  }
+
+  function zelle(tag, versatz){
+    var cell = document.createElement("div"); cell.className = "cell";
+    var b = document.createElement("button"); b.className = "roll"; b.type = "button";
+    b.style.marginTop = versatz + "px";
+    b.style.setProperty("--tilt", (((tag * 37) % 9) - 4) * 0.6 + "deg");
+    b.innerHTML = umschlag(tag) + KLAMMER;
+    function setze(){
+      var s = status(tag); b.dataset.state = s;
+      b.setAttribute("aria-label", T.tag + tag + (s === "gelesen" ? T.gelesen : ""));
+    }
+    setze();
+    b.addEventListener("click", function(){
+      oeffne(tag); gelesen[tag] = 1;
+      try { localStorage.setItem(KEY, JSON.stringify(gelesen)); } catch(e) {}
+      setze();
+    });
+    cell.appendChild(b);
+    return cell;
+  }
+
+  function spalten(){ var w = window.innerWidth; return w <= 520 ? 3 : w <= 820 ? 4 : 6; }
+  var aktuell = spalten(); baue(aktuell);
+  window.addEventListener("resize", function(){ var n = spalten(); if (n !== aktuell) { aktuell = n; baue(n); } });
+
+  var dlg = document.getElementById("dlg");
+  function oeffne(tag){
+    var g = S[tag - 1] || { titel: T.leerTitel, text: T.leerText };
+    document.getElementById("dlgTag").textContent = T.datum(tag);
+    document.getElementById("dlgTitel").textContent = g.titel || "";
+    var box = document.getElementById("dlgText"); box.textContent = "";
+    String(g.text || "").split(/\n\s*\n/).forEach(function(abs){
+      var p = document.createElement("p"); p.textContent = abs.trim(); box.appendChild(p);
+    });
+    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+  }
+  document.getElementById("zu").addEventListener("click", function(){ dlg.close(); });
+  dlg.addEventListener("click", function(e){ if (e.target === dlg) dlg.close(); });
+
+})();
+</script>
+</body>
+</html>
